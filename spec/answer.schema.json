@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thinkerwave.ai/schemas/answer.schema.json",
+  "title": "ThinkerWave answer",
+  "description": "The body of GET /runs/{id}/answer: the best answer so far (or the final one), its confidence, and the evidence behind each claim.",
+  "type": "object",
+  "required": ["round", "score", "final", "answer", "confidence", "findings", "text"],
+  "properties": {
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The round this answer came from (1-based)."
+    },
+    "score": {
+      "type": ["number", "null"],
+      "description": "The round's score, 0 to 10. A high score is not proof; read the findings."
+    },
+    "final": {
+      "type": "boolean",
+      "description": "True once the run has ended; false while it may still improve."
+    },
+    "answer": {
+      "description": "The answer itself.",
+      "type": "string"
+    },
+    "confidence": {
+      "enum": ["high", "medium", "low", "unknown"],
+      "description": "How confident the agent says it is."
+    },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Finding" },
+      "description": "The claims behind the answer, each tagged with the kind of evidence."
+    },
+    "text": {
+      "description": "The round's written conclusion.",
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "Finding": {
+      "type": "object",
+      "required": ["text", "evidence", "flagged"],
+      "properties": {
+        "text": { "type": "string" },
+        "evidence": {
+          "enum": ["verified", "assumption", "guess", null],
+          "description": "verified: checked by calculation or a source. assumption: taken as given or reasoned. guess: a hunch with no support. null: untagged."
+        },
+        "flagged": {
+          "type": "boolean",
+          "description": "True when the finding is disputed or needs a second look."
+        }
+      }
+    },
+    "RoundAnswer": {
+      "type": "object",
+      "description": "The answer part of an item in GET /runs/{id}/rounds (the answer without round, score and final).",
+      "required": ["answer", "confidence", "findings", "text"],
+      "properties": {
+        "answer": { "type": "string" },
+        "confidence": { "enum": ["high", "medium", "low", "unknown"] },
+        "findings": { "type": "array", "items": { "$ref": "#/$defs/Finding" } },
+        "text": { "type": "string" }
+      }
+    }
+  }
+}

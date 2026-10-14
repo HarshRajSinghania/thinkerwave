@@ -1,0 +1,456 @@
+openapi: 3.1.0
+info:
+  title: ThinkerWave API
+  version: "1.0.0"
+  summary: Start research runs, follow them live, and read the answer with its evidence.
+  description: |
+    ThinkerWave works on a problem in rounds, checking its own work and keeping the best answer.
+    This API starts a run, reports progress, and returns the answer, the evidence behind each claim,
+    and any files produced.
+
+    Rounds are numbered from 1 in every field. Authenticate with an API key created at
+    thinkerwave.ai/app under Settings, then API keys.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://api.thinkerwave.ai/api/v1
+security:
+  - bearer: []
+tags:
+  - name: Runs
+  - name: Account
+paths:
+  /me:
+    get:
+      tags: [Account]
+      operationId: getMe
+      summary: Your plan and limits
+      responses:
+        "200":
+          description: The account behind the key.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MeOut" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "503": { $ref: "#/components/responses/Error" }
+  /runs:
+    post:
+      tags: [Runs]
+      operationId: createRun
+      summary: Start a run
+      description: |
+        Returns at once with the run id. The run itself takes minutes; follow it with the event stream
+        or by polling `GET /runs/{id}`. Retrying this request after a network failure may start a second run.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RunIn" }
+      responses:
+        "201":
+          description: The run was accepted.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RunCreated" }
+        "401": { $ref: "#/components/responses/Error" }
+        "402": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "503": { $ref: "#/components/responses/Error" }
+    get:
+      tags: [Runs]
+      operationId: listRuns
+      summary: Your runs, newest first
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: Your most recent runs.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/RunListItem" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "503": { $ref: "#/components/responses/Error" }
+  /runs/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RunId"
+    get:
+      tags: [Runs]
+      operationId: getRun
+      summary: One run
+      responses:
+        "200":
+          description: The run's status and progress.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RunOut" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "503": { $ref: "#/components/responses/Error" }
+  /runs/{id}/stop:
+    parameters:
+      - $ref: "#/components/parameters/RunId"
+    post:
+      tags: [Runs]
+      operationId: stopRun
+      summary: Stop a run
+      description: Safe to call more than once. The best answer so far stays available.
+      responses:
+        "200":
+          description: The run is stopping, or had already ended.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok: { type: boolean }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "503": { $ref: "#/components/responses/Error" }
+  /runs/{id}/answer:
+    parameters:
+      - $ref: "#/components/parameters/RunId"
+    get:
+      tags: [Runs]
+      operationId: getAnswer
+      summary: The best answer so far, or the final answer
+      description: Returns 404 `not_found` until a round has produced an answer.
+      responses:
+        "200":
+          description: The answer, its confidence and the evidence behind each claim.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AnswerOut" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "503": { $ref: "#/components/responses/Error" }
+  /runs/{id}/rounds:
+    parameters:
+      - $ref: "#/components/parameters/RunId"
+    get:
+      tags: [Runs]
+      operationId: getRounds
+      summary: One item per finished round
+      responses:
+        "200":
+          description: The rounds so far, oldest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/RoundOut" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "503": { $ref: "#/components/responses/Error" }
+  /runs/{id}/files:
+    parameters:
+      - $ref: "#/components/parameters/RunId"
+    get:
+      tags: [Runs]
+      operationId: listFiles
+      summary: Files the run produced
+      description: Charts, tables and notes the run made. Files you supplied are not listed.
+      responses:
+        "200":
+          description: The produced files.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/FileOut" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "503": { $ref: "#/components/responses/Error" }
+  /runs/{id}/files/{path}:
+    parameters:
+      - $ref: "#/components/parameters/RunId"
+      - name: path
+        in: path
+        required: true
+        description: The file's path as listed by `GET /runs/{id}/files`. May contain slashes.
+        schema: { type: string }
+    get:
+      tags: [Runs]
+      operationId: getFile
+      summary: Download one produced file
+      description: |
+        Images, tables and text are served with their own type. Any other type is sent as a download
+        (`application/octet-stream`).
+      responses:
+        "200":
+          description: The file's bytes.
+          content:
+            "*/*":
+              schema: { type: string, format: binary }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "503": { $ref: "#/components/responses/Error" }
+  /runs/{id}/events:
+    parameters:
+      - $ref: "#/components/parameters/RunId"
+    get:
+      tags: [Runs]
+      operationId: streamEvents
+      summary: Follow a run live (Server-Sent Events)
+      description: |
+        Replays what has happened so far, then continues live. Each message has an `id`; reconnect with
+        the `Last-Event-ID` header to resume after the last one you saw. A `: keepalive` comment arrives
+        about every 15 seconds. The stream always ends with `run.finished` (a failed run sends `run.error`
+        first when the reason is known).
+        Event payloads are described in `events.schema.json`.
+      parameters:
+        - name: Last-Event-ID
+          in: header
+          required: false
+          schema: { type: integer, minimum: 0 }
+      responses:
+        "200":
+          description: An event stream.
+          content:
+            text/event-stream:
+              schema: { type: string }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "503": { $ref: "#/components/responses/Error" }
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: An API key, for example `tw_live_…`.
+  parameters:
+    RunId:
+      name: id
+      in: path
+      required: true
+      description: The run id, for example `wr_…`.
+      schema: { type: string }
+  responses:
+    Error:
+      description: An error. `error.code` says what happened; see the errors guide.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    RateLimited:
+      description: Too many requests, or a run limit was reached. `Retry-After` says how long to wait when known.
+      headers:
+        Retry-After:
+          schema: { type: integer, minimum: 0 }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+  schemas:
+    RunIn:
+      type: object
+      required: [problem]
+      additionalProperties: false
+      properties:
+        problem:
+          type: string
+          minLength: 20
+          maxLength: 12000
+          description: The problem to work on.
+        given:
+          type: array
+          maxItems: 20
+          items: { type: string, maxLength: 300 }
+          description: Facts to keep exactly as written.
+        standards:
+          type: array
+          maxItems: 15
+          items: { type: string, maxLength: 300 }
+          description: What a good answer must do.
+        pitfalls:
+          type: array
+          maxItems: 10
+          items: { type: string, maxLength: 300 }
+          description: Mistakes to avoid.
+        max_rounds:
+          type: [integer, "null"]
+          minimum: 1
+          description: Most rounds to run. Capped at your plan's limit (see `GET /me`).
+    RunCreated:
+      type: object
+      required: [id, status, queue_position]
+      properties:
+        id: { type: string }
+        status: { enum: [queued, running] }
+        queue_position:
+          type: [integer, "null"]
+          description: Place in line when queued, otherwise null.
+    RunListItem:
+      type: object
+      required: [id, status, problem_preview, best_score, rounds_done, created_at, elapsed_seconds]
+      properties:
+        id: { type: string }
+        status: { enum: [queued, running, completed, stopped, failed] }
+        problem_preview:
+          type: string
+          description: The start of the problem text.
+        best_score: { type: number }
+        rounds_done: { type: integer }
+        created_at: { type: string }
+        elapsed_seconds: { type: number }
+    RunOut:
+      type: object
+      required: [id, status, problem, round, max_rounds, best_score, started_at, completed_at, elapsed_seconds, stop_reason, error]
+      properties:
+        id: { type: string }
+        status: { enum: [queued, running, completed, stopped, failed] }
+        problem:
+          type: string
+          description: The full problem text as the run received it.
+        round:
+          type: integer
+          description: The round in progress, or the last one reached.
+        max_rounds: { type: integer }
+        best_score: { type: number }
+        started_at: { type: [string, "null"] }
+        completed_at: { type: [string, "null"] }
+        elapsed_seconds: { type: number }
+        stop_reason:
+          description: |
+            Why the run ended, or null while it is still going.
+            `target_reached`: the answer is as good as the run aims for.
+            `plateau`: further rounds stopped improving it.
+            `max_rounds`: the round limit was reached.
+            `limit_reached`: a usage limit was reached.
+            `stopped`: you stopped it.
+            `failed`: something went wrong.
+          enum: [target_reached, plateau, max_rounds, limit_reached, stopped, failed, null]
+        error:
+          type: [string, "null"]
+          description: A plain sentence when the run failed, otherwise null.
+    Finding:
+      type: object
+      required: [text, evidence, flagged]
+      properties:
+        text: { type: string }
+        evidence:
+          description: |
+            `verified`: checked by calculation or a source.
+            `assumption`: taken as given or reasoned.
+            `guess`: a hunch with no support.
+            null: untagged.
+          enum: [verified, assumption, guess, null]
+        flagged:
+          type: boolean
+          description: True when the finding is disputed or needs a second look.
+    RoundAnswer:
+      type: object
+      required: [answer, confidence, findings, text]
+      properties:
+        answer: { type: string }
+        confidence: { enum: [high, medium, low, unknown] }
+        findings:
+          type: array
+          items: { $ref: "#/components/schemas/Finding" }
+        text:
+          type: string
+          description: The round's written conclusion.
+    AnswerOut:
+      type: object
+      required: [round, score, final, answer, confidence, findings, text]
+      properties:
+        round:
+          type: integer
+          description: The round this answer came from.
+        score:
+          type: [number, "null"]
+          description: The round's score, 0 to 10. A high score is not proof; read the findings.
+        final:
+          type: boolean
+          description: True once the run has ended.
+        answer: { type: string }
+        confidence: { enum: [high, medium, low, unknown] }
+        findings:
+          type: array
+          items: { $ref: "#/components/schemas/Finding" }
+        text:
+          type: string
+          description: The round's written conclusion.
+    ToolCounts:
+      type: object
+      required: [python, web_search, pages_read]
+      properties:
+        python: { type: integer, description: Calculations run. }
+        web_search: { type: integer, description: Web searches made. }
+        pages_read: { type: integer, description: Web pages read. }
+    RoundOut:
+      type: object
+      required: [round, score, change, answer, tools]
+      properties:
+        round: { type: integer }
+        score: { type: [number, "null"] }
+        change:
+          description: How the agent changed after this round, or null.
+          enum: [refined, changed_approach, rethought, null]
+        answer:
+          oneOf:
+            - $ref: "#/components/schemas/RoundAnswer"
+            - type: "null"
+        tools: { $ref: "#/components/schemas/ToolCounts" }
+    FileOut:
+      type: object
+      required: [path, size, type, kind]
+      properties:
+        path: { type: string }
+        size: { type: [integer, "null"], description: Size in bytes. }
+        type: { type: [string, "null"], description: Media type, for example `image/png`. }
+        kind: { enum: [image, table, text, other] }
+    MeOut:
+      type: object
+      required: [email, plan, runs_today, runs_per_day, concurrent_runs, max_rounds]
+      properties:
+        email: { type: string }
+        plan: { type: string, description: "For example `trial` or `managed`." }
+        runs_today: { type: integer }
+        runs_per_day: { type: integer }
+        concurrent_runs: { type: integer }
+        max_rounds: { type: integer }
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              enum:
+                - invalid_key
+                - account_disabled
+                - not_invited
+                - credit_exhausted
+                - not_found
+                - invalid_request
+                - rate_limited
+                - run_limit
+                - unavailable
+            message: { type: string }

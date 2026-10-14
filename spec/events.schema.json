@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thinkerwave.ai/schemas/events.schema.json",
+  "title": "ThinkerWave run events",
+  "description": "One entry in $defs per event name on GET /runs/{id}/events (Server-Sent Events). Each entry describes the event's data payload. Clients should ignore unknown event names and unknown fields.",
+  "$defs": {
+    "run.started": {
+      "type": "object",
+      "required": ["max_rounds"],
+      "properties": { "max_rounds": { "type": ["integer", "null"], "minimum": 1 } },
+      "additionalProperties": true
+    },
+    "round.started": {
+      "type": "object",
+      "required": ["round"],
+      "properties": { "round": { "type": "integer", "minimum": 1 } },
+      "additionalProperties": true
+    },
+    "round.step": {
+      "type": "object",
+      "required": ["round", "step"],
+      "properties": {
+        "round": { "type": "integer", "minimum": 1 },
+        "step": { "enum": ["plan", "work", "check", "rethink"] }
+      },
+      "additionalProperties": true
+    },
+    "round.tool": {
+      "type": "object",
+      "required": ["round", "kind", "ok"],
+      "properties": {
+        "round": { "type": "integer", "minimum": 1 },
+        "kind": { "enum": ["python", "web_search", "page_read", "other"] },
+        "ok": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "round.finished": {
+      "type": "object",
+      "required": ["round", "score", "change", "best_so_far"],
+      "properties": {
+        "round": { "type": "integer", "minimum": 1 },
+        "score": { "type": ["number", "null"] },
+        "change": { "enum": ["refined", "changed_approach", "rethought", null] },
+        "best_so_far": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "run.went_back": {
+      "type": "object",
+      "required": ["round", "to_round"],
+      "properties": {
+        "round": { "type": "integer", "minimum": 1 },
+        "to_round": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": true
+    },
+    "run.finished": {
+      "type": "object",
+      "required": ["status", "stop_reason", "best_score"],
+      "properties": {
+        "status": { "enum": ["completed", "stopped", "failed"] },
+        "stop_reason": {
+          "enum": ["target_reached", "plateau", "max_rounds", "limit_reached", "stopped", "failed", null]
+        },
+        "best_score": { "type": ["number", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "run.error": {
+      "type": "object",
+      "required": ["message"],
+      "properties": { "message": { "type": "string" } },
+      "additionalProperties": true
+    }
+  }
+}
