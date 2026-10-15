@@ -176,3 +176,13 @@ def test_watch_run_error_then_failed_finish(run_cli, api, capsys, monkeypatch):
     cap = capsys.readouterr()
     assert "The run hit a problem and stopped." in cap.err
     assert cap.out.splitlines()[-1] == "Run failed (failed).", "the stream continues to run.finished"
+
+
+def test_rounds_prints_scores_with_one_decimal(run_cli, api, capsys):
+    run_cli("run", PROBLEM)
+    rid = next(iter(api.runs))
+    capsys.readouterr()
+    assert run_cli("rounds", rid) == 0
+    out = capsys.readouterr().out
+    assert "Round 1 · 4.0 ·" in out and "Round 2 · 6.0 ·" in out
+    assert "6.699" not in out and "4.0000" not in out

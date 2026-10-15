@@ -190,7 +190,7 @@ def _dispatch(tw: Client, args: argparse.Namespace) -> int:
         for rd in tw.runs.rounds(args.id):
             change = (rd.change or "").replace("_", " ")
             ans = rd.answer.answer if rd.answer else "—"
-            print(f"Round {rd.round} · {rd.score if rd.score is not None else '—'} · {change} · {ans}")
+            print(f"Round {rd.round} · {f'{rd.score:.1f}' if rd.score is not None else '—'} · {change} · {ans}")
     elif args.cmd == "files":
         for f in tw.runs.files(args.id):
             print(f"{f.path}\t{f.kind}\t{f.size or ''}")
