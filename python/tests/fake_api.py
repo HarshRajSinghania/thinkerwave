@@ -37,6 +37,7 @@ class FakeApi:
     def __init__(self) -> None:
         self.runs: dict[str, dict] = {}
         self.fail_next: list[Union[int, tuple[int, str]]] = []  # status, or (status, error code)
+        self.raw_next: list[httpx.Response] = []  # verbatim responses to return first (proxies, redirects)
         self.drop_stream_after: Optional[int] = None  # end the stream cleanly after this event id, once
         self.error_stream_after: Optional[int] = None  # raise a transport error after this event id, once
         self.empty_stream = False  # every events request returns 200 with no events
@@ -54,6 +55,8 @@ class FakeApi:
             raise httpx.ConnectError("connection refused", request=req)
         if req.headers.get("authorization") != f"Bearer {KEY}":
             return err(401, "invalid_key", "The API key is missing, invalid or revoked.")
+        if self.raw_next:
+            return self.raw_next.pop(0)
         if self.fail_next:
             item = self.fail_next.pop(0)
             status, code = item if isinstance(item, tuple) else (item, "rate_limited" if item == 429 else "unavailable")

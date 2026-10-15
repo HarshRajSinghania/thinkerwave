@@ -271,3 +271,22 @@ def test_events_accept_a_final_run_finished_without_an_id(tw, api, monkeypatch):
 def test_wait_returns_finished_run(tw):
     rid = tw.runs.create("A problem that is long enough to pass.").id
     assert tw.runs.wait(rid, timeout=5, poll=0).status == "completed"
+
+
+def test_redirect_is_unavailable_not_a_crash(tw, api):
+    import httpx
+    from thinkerwave import UnavailableError
+    api.raw_next.append(httpx.Response(301, headers={"location": "https://api.test/api/v1/runs/"},
+                                       content=b"<html>301 Moved Permanently</html>"))
+    with pytest.raises(UnavailableError, match="HTTP 301"):
+        tw.runs.create("A problem that is long enough to pass.")
+    assert len(api.requests) == 1, "a redirect on POST /runs is not retried"
+
+
+def test_non_json_success_body_is_unavailable(tw, api):
+    import httpx
+    from thinkerwave import UnavailableError
+    api.raw_next.append(httpx.Response(200, content=b"<html>captive portal</html>",
+                                       headers={"content-type": "text/html"}))
+    with pytest.raises(UnavailableError, match="not JSON"):
+        tw.me()

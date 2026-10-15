@@ -80,8 +80,13 @@ class Client:
                     raise UnavailableError("unavailable", _UNREACHABLE) from exc
                 _sleep(_backoff(attempt))
                 continue
-            if res.status_code < 400:
+            if res.status_code < 300:
                 return res
+            if res.status_code < 400:
+                # A redirect is never part of the API contract: something between us and
+                # ThinkerWave (a proxy, a captive portal) answered instead. Say so plainly.
+                raise UnavailableError("unavailable", f"Unexpected reply from ThinkerWave (HTTP {res.status_code}) "
+                                       "— check the base URL or try again in a moment.")
             try:
                 body = res.json()
             except ValueError:
@@ -93,7 +98,12 @@ class Client:
         raise UnavailableError("unavailable", "Unreachable")  # pragma: no cover
 
     def _json(self, method: str, path: str, **kw: Any) -> Any:
-        return self._request(method, path, **kw).json()
+        res = self._request(method, path, **kw)
+        try:
+            return res.json()
+        except ValueError:
+            raise UnavailableError("unavailable", "ThinkerWave sent a reply that was not JSON — "
+                                   "check the base URL or try again in a moment.") from None
 
     def me(self) -> Me:
         return Me.model_validate(self._json("GET", "/me"))
