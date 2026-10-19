@@ -7,10 +7,10 @@ name = "thinkerwave"
 version = "0.1.0"
 description = "Python SDK, CLI and MCP server for ThinkerWave — an autonomous research agent that shows its evidence."
 readme = "README.md"
-license = "MIT"
+license = "Apache-2.0"
 requires-python = ">=3.10"
 dependencies = ["httpx>=0.27", "pydantic>=2.6"]
-classifiers = ["License :: OSI Approved :: MIT License", "Programming Language :: Python :: 3"]
+classifiers = ["License :: OSI Approved :: Apache Software License", "Programming Language :: Python :: 3"]
 
 [project.optional-dependencies]
 mcp = ["mcp>=2.3"]
