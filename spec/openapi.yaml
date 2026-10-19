@@ -434,6 +434,9 @@ components:
         runs_per_day: { type: integer }
         concurrent_runs: { type: integer }
         max_rounds: { type: integer }
+        credit_remaining_usd:
+          type: number
+          description: Credit left in US dollars. Present only on paid (managed) plans, and only when known.
     Error:
       type: object
       required: [error]

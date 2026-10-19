@@ -44,6 +44,7 @@ class FakeApi:
         self.requests: list[httpx.Request] = []
         self.answer_ready = True
         self.transport_errors = 0  # the next N requests fail with a connection error
+        self.me_extra: dict = {}  # extra /me fields (e.g. credit_remaining_usd for a paid plan)
 
     def transport(self) -> httpx.MockTransport:
         return httpx.MockTransport(self.handle)
@@ -64,7 +65,8 @@ class FakeApi:
         p, m = req.url.path.removeprefix("/api/v1"), req.method
         if p == "/me":
             return httpx.Response(200, json={"email": "a@b.c", "plan": "trial", "runs_today": 0,
-                                             "runs_per_day": 5, "concurrent_runs": 1, "max_rounds": 10})
+                                             "runs_per_day": 5, "concurrent_runs": 1, "max_rounds": 10,
+                                             **self.me_extra})
         if p == "/runs" and m == "POST":
             body = json.loads(req.content)
             if len(body.get("problem", "")) < 20:

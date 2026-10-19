@@ -171,7 +171,8 @@ def _run(tw: Client, args: argparse.Namespace) -> int:
 def _dispatch(tw: Client, args: argparse.Namespace) -> int:
     if args.cmd == "me":
         m = tw.me()
-        print(f"{m.email} · {m.plan} · {m.runs_today}/{m.runs_per_day} runs today · up to {m.max_rounds} rounds")
+        credit = f" · ${m.credit_remaining_usd:.2f} credit left" if m.credit_remaining_usd is not None else ""
+        print(f"{m.email} · {m.plan} · {m.runs_today}/{m.runs_per_day} runs today · up to {m.max_rounds} rounds{credit}")
     elif args.cmd == "run":
         return _run(tw, args)
     elif args.cmd == "status":

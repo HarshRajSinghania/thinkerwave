@@ -186,3 +186,14 @@ def test_rounds_prints_scores_with_one_decimal(run_cli, api, capsys):
     out = capsys.readouterr().out
     assert "Round 1 · 4.0 ·" in out and "Round 2 · 6.0 ·" in out
     assert "6.699" not in out and "4.0000" not in out
+
+
+def test_me_shows_credit_left_for_a_paid_plan(run_cli, api, capsys):
+    api.me_extra = {"plan": "managed", "credit_remaining_usd": 9.93}
+    assert run_cli("me") == 0
+    assert "$9.93 credit left" in capsys.readouterr().out
+
+
+def test_me_trial_shows_no_dollar_figure(run_cli, capsys):
+    assert run_cli("me") == 0
+    assert "$" not in capsys.readouterr().out

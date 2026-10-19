@@ -90,6 +90,7 @@ class Me(_M):
     runs_per_day: int
     concurrent_runs: int
     max_rounds: int
+    credit_remaining_usd: Optional[float] = None  # paid (managed) plans only
 
 
 class _Event(_M):
