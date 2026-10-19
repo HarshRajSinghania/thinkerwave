@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+# A thin launcher so MCP clients and the MCP Registry can run the server with
+# `uvx thinkerwave-mcp`. All the code lives in the `thinkerwave` package; this
+# just installs it with the MCP extra and exposes the command. Keep the version
+# and the pin below in lock-step with python/pyproject.toml.
+[project]
+name = "thinkerwave-mcp"
+version = "0.1.1"
+description = "MCP server for ThinkerWave — give Claude Code, Cursor or any MCP client an autonomous research agent that shows its evidence."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+dependencies = ["thinkerwave[mcp]==0.1.1"]
+classifiers = ["License :: OSI Approved :: Apache Software License", "Programming Language :: Python :: 3"]
+
+[project.scripts]
+thinkerwave-mcp = "thinkerwave.mcp_server:main"
+
+[project.urls]
+Homepage = "https://thinkerwave.ai"
+Source = "https://github.com/thinkerwave-ai/thinkerwave"
+Documentation = "https://github.com/thinkerwave-ai/thinkerwave/blob/main/docs/mcp.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/thinkerwave_mcp"]

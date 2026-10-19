@@ -8,5 +8,5 @@ from .models import (Answer, Event, File, Finding, Me, Round, RoundAnswer, Round
                      RoundTool, Run, RunCreated, RunError, RunFinished, RunStarted, RunSummary, RunWentBack,
                      ToolCounts)
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __all__ = [n for n in dir() if not n.startswith("_")]

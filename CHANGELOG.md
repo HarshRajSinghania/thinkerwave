@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.1.0 — unreleased
+## 0.1.1 — 2026-10-20
+
+- New `thinkerwave-mcp` package: run the MCP server with `uvx thinkerwave-mcp` (MCP Registry listing `io.github.thinkerwave-ai/thinkerwave`).
+- `tw me` shows the credit left on paid plans.
+- Licence is now Apache-2.0.
+
+## 0.1.0 — 2026-10-19
 
 - Python SDK: start runs, read answers, rounds and files, follow events with automatic reconnect.
 - `tw` command line.
