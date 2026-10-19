@@ -2,19 +2,29 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.thinkerwave-ai/thinkerwave",
   "title": "ThinkerWave",
-  "description": "Autonomous research agent for hard problems: iterates round after round and labels every claim verified, assumption or guess.",
+  "description": "Autonomous research agent for hard problems that labels every claim verified, assumption or guess.",
   "version": "0.1.1",
   "websiteUrl": "https://thinkerwave.ai",
-  "repository": { "url": "https://github.com/thinkerwave-ai/thinkerwave", "source": "github" },
+  "repository": {
+    "url": "https://github.com/thinkerwave-ai/thinkerwave",
+    "source": "github"
+  },
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "thinkerwave-mcp",
       "version": "0.1.1",
       "runtimeHint": "uvx",
-      "transport": { "type": "stdio" },
+      "transport": {
+        "type": "stdio"
+      },
       "environmentVariables": [
-        { "name": "THINKERWAVE_API_KEY", "description": "Your ThinkerWave API key (thinkerwave.ai/app → Settings → API keys)", "isRequired": true, "isSecret": true }
+        {
+          "name": "THINKERWAVE_API_KEY",
+          "description": "Your ThinkerWave API key (thinkerwave.ai/app → Settings → API keys)",
+          "isRequired": true,
+          "isSecret": true
+        }
       ]
     }
   ]

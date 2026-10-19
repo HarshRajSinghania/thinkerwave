@@ -25,3 +25,9 @@ def test_registry_ownership_marker_matches_server_name():
     readme = (ROOT / "mcp-package" / "README.md").read_text()
     assert f"<!-- mcp-name: {server['name']} -->" in readme
     assert server["packages"][0]["identifier"] == "thinkerwave-mcp"
+
+
+def test_registry_description_fits():
+    # The MCP Registry rejects descriptions over 100 characters (422 on publish).
+    server = json.loads((ROOT / "server.json").read_text())
+    assert len(server["description"]) <= 100
