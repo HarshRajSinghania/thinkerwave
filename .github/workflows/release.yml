@@ -36,3 +36,31 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
+
+  # List the MCP server on the official MCP Registry (registry.modelcontextprotocol.io).
+  # GitHub OIDC proves we own io.github.thinkerwave-ai/* — no token to store. The
+  # registry checks thinkerwave-mcp's PyPI page for the mcp-name marker, so wait
+  # until PyPI is serving the new version first.
+  registry:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for thinkerwave-mcp on PyPI
+        run: |
+          V=$(jq -r .version server.json)
+          for i in $(seq 1 30); do
+            curl -sf "https://pypi.org/pypi/thinkerwave-mcp/$V/json" >/dev/null && exit 0
+            sleep 20
+          done
+          echo "thinkerwave-mcp $V never appeared on PyPI" >&2; exit 1
+      - name: Install mcp-publisher
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+      - name: Log in with GitHub OIDC
+        run: ./mcp-publisher login github-oidc
+      - name: Publish server.json
+        run: ./mcp-publisher publish
