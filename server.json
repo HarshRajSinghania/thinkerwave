@@ -3,7 +3,7 @@
   "name": "io.github.thinkerwave-ai/thinkerwave",
   "title": "ThinkerWave",
   "description": "Autonomous research agent for hard problems that labels every claim verified, assumption or guess.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "websiteUrl": "https://thinkerwave.ai",
   "repository": {
     "url": "https://github.com/thinkerwave-ai/thinkerwave",
@@ -13,7 +13,7 @@
     {
       "registryType": "pypi",
       "identifier": "thinkerwave-mcp",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"

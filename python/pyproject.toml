@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "thinkerwave"
-version = "0.1.1"
+version = "0.1.2"
 description = "Python SDK, CLI and MCP server for ThinkerWave — an autonomous research agent that shows its evidence."
 readme = "README.md"
 license = "Apache-2.0"

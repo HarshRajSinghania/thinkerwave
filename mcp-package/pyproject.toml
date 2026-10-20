@@ -8,12 +8,12 @@ build-backend = "hatchling.build"
 # and the pin below in lock-step with python/pyproject.toml.
 [project]
 name = "thinkerwave-mcp"
-version = "0.1.1"
+version = "0.1.2"
 description = "MCP server for ThinkerWave — give Claude Code, Cursor or any MCP client an autonomous research agent that shows its evidence."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
-dependencies = ["thinkerwave[mcp]==0.1.1"]
+dependencies = ["thinkerwave[mcp]==0.1.2"]
 classifiers = ["License :: OSI Approved :: Apache Software License", "Programming Language :: Python :: 3"]
 
 [project.scripts]
