@@ -153,3 +153,11 @@ def test_transport_failure_is_a_message_for_every_tool():
              "read_file": {"id": "wr_x", "path": "notes.md"}, "stop_run": {"id": "wr_x"}}
     for name, args in calls.items():
         assert "unreachable" in text_of(call(srv, name, args)), name
+
+
+def test_publishes_instructions_for_the_assistant(server):
+    # MCP clients put these ahead of the tool list; directories (e.g. Glama) show them.
+    text = server.instructions or ""
+    assert "start_run" in text and "run_status" in text
+    assert "minutes" in text
+    assert "verified" in text and "assumption" in text and "guess" in text

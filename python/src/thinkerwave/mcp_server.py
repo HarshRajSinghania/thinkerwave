@@ -10,8 +10,21 @@ from typing import Optional
 import httpx
 from mcp.server.mcpserver import Image, MCPServer
 
-from . import Client
+from . import Client, __version__
 from .errors import NotFoundError, ThinkerWaveError
+
+# Shown to the assistant ahead of the tool list (and by MCP directories).
+INSTRUCTIONS = (
+    "ThinkerWave is an autonomous research agent for hard, open-ended questions "
+    "(pricing, risk, market entry, due diligence, candidate selection). Use it when "
+    "a careful, evidence-backed answer matters more than a fast one; for simple "
+    "lookups, answer directly instead. Runs take minutes: call start_run with the "
+    "problem (put facts the user is sure of in `given`), then check back with "
+    "run_status every minute or so, and call get_answer when it has finished. "
+    "Every claim in the answer is labelled verified, assumption or guess: keep "
+    "those labels when you report back. list_files and read_file return the "
+    "charts and tables it produced; stop_run ends a run early."
+)
 
 TEXT_LIMIT = 200_000
 IMAGE_LIMIT = 1_000_000
@@ -20,7 +33,13 @@ _IMAGE_FORMATS = {"png": "png", "jpg": "jpeg", "jpeg": "jpeg", "gif": "gif", "we
 
 
 def build_server(client_factory: Callable[[], Client]) -> MCPServer:
-    mcp = MCPServer("thinkerwave")
+    mcp = MCPServer(
+        "thinkerwave",
+        title="ThinkerWave",
+        website_url="https://thinkerwave.ai",
+        version=__version__,
+        instructions=INSTRUCTIONS,
+    )
     state: dict[str, Client] = {}
 
     def tw() -> Client:
