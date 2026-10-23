@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add `py.typed` marker so type checkers (mypy, pyright) can discover the package's type information.
+
 ## 0.1.2 — 2026-10-21
 
 - MCP server publishes instructions (when to use ThinkerWave, how runs work, keep the evidence labels), plus its title, website and version.
